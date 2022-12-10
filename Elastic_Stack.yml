@@ -1,0 +1,38 @@
+---
+
+- hosts: all
+  become: true
+  pre_tasks:
+
+  - name: Installing epel-release and dnf
+    yum:
+      name:
+        - epel-release
+        - dnf
+    when: ansible_distribution == "CentOS"
+
+  - name: Update and upgrade remote CentOS server
+    dnf:
+      update_cache: yes
+      name:  "*"
+      state: latest
+    when: ansible_distribution == "CentOS"
+
+- hosts: Kibana
+  tags: kibana
+  become: true
+  roles:
+    - { role: Kibana, target_ip: 192.168.56.128, ip_host: 192.168.56.130, gpg_key_kibana: https://artifacts.elastic.co/GPG-KEY-elasticsearch }
+
+- hosts: Elasticsearch
+  tags: es
+  become: true
+  roles:
+    - { role: Elasticsearch, ip_host: 192.168.56.128 }
+
+- hosts: Logstash
+  tags: Logstash
+  become: true
+  roles:
+    - role: Logstash
+      gpg_key_logstash: https://artifacts.elastic.co/GPG-KEY-elasticsearch
